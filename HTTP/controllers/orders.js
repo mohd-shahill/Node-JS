@@ -133,3 +133,48 @@ export const deleteOrderById = async (request, response) => {
         }))
     }
 }
+
+export const editOrderById = (request, response) => {
+    let body ='';
+    request.on("data", (chunk) => {
+        body += chunk.toString();
+    })
+
+    request.on("end", async () => {
+        try {
+            // console.log(body);
+            const get_id_from_url = request.url.split('/').filter(Boolean);
+            const id = get_id_from_url[3];
+            
+            const data = JSON.parse(body);
+            const { order_name, order_started } = data;
+            
+            // console.log(id, data);
+
+            const query = "UPDATE orders SET order_name = $1, order_started = $2 WHERE order_id = $3 RETURNING *";
+            const values = [order_name, order_started, id];
+
+            const result = await pool.query(query, values);
+            
+            if (result.rows.length === 0) {
+                response.writeHead(404, { "Content-Type" : "application/json"});
+                response.end(JSON.stringify({
+                    message: "EMPTY EMPTY EMPTY."
+                }))
+            } else {
+                response.writeHead(200, { "Content-Type" : "application/json"});
+                response.end(JSON.stringify({
+                    message: "Woah its actually updated.",
+                    updated_order: result.rows[0]
+                }))
+            }
+
+        } catch (error) {
+            console.log("Error", error);
+            response.writeHead(500, { "Content-Type" : "application/json" })
+            response.end(JSON.stringify({
+            message: "Error error error"
+        }))
+        }
+    })
+}
