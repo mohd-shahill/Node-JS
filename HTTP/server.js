@@ -12,8 +12,8 @@ const server =  http.createServer((request, response) => {
     } else if (request.url == "/api/see-orders" && request.method == "GET"){
         seeOrder(request, response);
     } else {
-        res.writeHead(404);
-        res.end("Not Found");
+        response.writeHead(404);
+        response.end("mmhm are you sure you are on right url?");
     }
 });
 
