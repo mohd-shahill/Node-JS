@@ -15,7 +15,9 @@ export const createOrder = (request, response) => {
 
             if( !order_id || !order_name ){
                 response.writeHead(400, {"Content-Type" : "application/json"});
-                response.end(JSON.stringify("Please provide both order_id and order_name."));
+                response.end(JSON.stringify({
+                    error: "Please provide both order_id and order_name."
+                }));
                 return;
             }
 
@@ -98,12 +100,12 @@ export const seeOrderById = async (request, response) => {
         if (result.rows.length === 0) {
                 response.writeHead(404, { "Content-Type" : "application/json" });
                 response.end(JSON.stringify({
-                error: "The order's not present here",
+                error: "The order's not present.",
             }))
         } else {
             response.writeHead(200, { "Content-Type" : "application/json" });
             response.end(JSON.stringify({
-                message: "Data fetched by order_id",
+                message: "Data fetched by order_id.",
                 order: result.rows
             }))
         }
@@ -169,7 +171,7 @@ export const editOrderById = (request, response) => {
             if (result.rows.length === 0) {
                 response.writeHead(418, { "Content-Type" : "application/json"});
                 response.end(JSON.stringify({
-                    message: "order_id is either wrong or not present."
+                    error: "order_id is either wrong or not present."
                 }))
             } else {
                 response.writeHead(200, { "Content-Type" : "application/json"});
