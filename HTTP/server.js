@@ -13,9 +13,9 @@ const server =  http.createServer((request, response) => {
         createOrder(request, response);
     } else if (request.url == "/api/see/order/all" && request.method == "GET"){
         seeOrder(request, response);
-    } else if (request.url.startsWith("/api/see/order/") && request.method == "GET") {
+    } else if (request.url.startsWith("/api/see/order/") && request.method == "GET"){
         seeOrderById(request, response);
-    } else if (request.url.startsWith("/api/see/order/") && request.method == "DELETE") {
+    } else if (request.url.startsWith("/api/see/order/") && request.method == "DELETE"){
         deleteOrderById(request, response);
     } else if (request.url.startsWith("/api/edit/order/") && request.method == "PUT"){
         editOrderById(request, response);
