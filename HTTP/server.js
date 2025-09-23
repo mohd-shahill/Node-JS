@@ -1,16 +1,22 @@
 import http from "http";
 import dotenv from 'dotenv';
 import pool from './database/db.js';
-import { createOrder, seeOrder } from "./controllers/orders.js";
+import { createOrder, deleteOrderById, seeOrder, seeOrderById } from "./controllers/orders.js";
 dotenv.config();
 
 const PORT = process.env.PORT;
 
+
 const server =  http.createServer((request, response) => {
-    if (request.url == "/api/create-order" && request.method == "POST"){
+
+    if (request.url == "/api/create/order" && request.method == "POST"){
         createOrder(request, response);
-    } else if (request.url == "/api/see-orders" && request.method == "GET"){
+    } else if (request.url == "/api/see/order/all" && request.method == "GET"){
         seeOrder(request, response);
+    } else if (request.url.startsWith("/api/see/order/") && request.method == "GET") {
+        seeOrderById(request, response);
+    } else if (request.url.startsWith("/api/see/order/") && request.method == "DELETE") {
+        deleteOrderById(request, response);
     } else {
         response.writeHead(404);
         response.end("mmhm are you sure you are on right url?");
