@@ -6,11 +6,11 @@ dotenv.config();
 
 const PORT = process.env.PORT;
 
-const server =  http.createServer((req, res) => {
-    if (req.url == "/api/create-order" && req.method == "POST"){
-        createOrder(req, res);
-    } else if (req.url == "/api/see-orders" && req.method == "GET"){
-        seeOrder(req, res);
+const server =  http.createServer((request, response) => {
+    if (request.url == "/api/create-order" && request.method == "POST"){
+        createOrder(request, response);
+    } else if (request.url == "/api/see-orders" && request.method == "GET"){
+        seeOrder(request, response);
     } else {
         res.writeHead(404);
         res.end("Not Found");
@@ -19,12 +19,12 @@ const server =  http.createServer((req, res) => {
 
 pool.connect((error) => {
     if (error){
-        console.log("Error connecting to the db.", error.stack)
+        console.log("Lol got an error with db connection.", error.stack)
     } else {
-        console.log("DB connected successfully.")
+        console.log("DB connected - Well done :)")
     }
 })
 
 server.listen(PORT, '127.0.0.1', () => {
-    console.log(`Server is running at ${PORT}`);
+    console.log(`Can you see which port it is connected to - ${PORT}`);
 });
