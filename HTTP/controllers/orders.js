@@ -108,7 +108,6 @@ export const seeOrderById = async (request, response) => {
             }))
         }
 
-
     } catch (error) {
         console.log("Error", error);
         response.writeHead(500, {"Content-Type" : "application/json"});
