@@ -15,7 +15,7 @@ export const createOrder = (request, response) => {
 
             if( !order_id || !order_name ){
                 response.writeHead(400, {"Content-Type" : "application/json"});
-                response.end(JSON.stringify("Please provide boooooooooth order_id and order_name."));
+                response.end(JSON.stringify("Please provide both order_id and order_name."));
                 return;
             }
 
@@ -23,13 +23,22 @@ export const createOrder = (request, response) => {
 
             if (!check.test(order_id)) {
                 response.writeHead(400, { "Content-Type": "application/json" });
-                response.end(JSON.stringify({ error: "only alphanum is allowed in order_id" }));
+                response.end(JSON.stringify({ error: "Only alphanum is allowed in order_id" }));
                 return;
             }
 
             if (!check.test(order_name)) {
                 response.writeHead(400, { "Content-Type": "application/json" });
-                response.end(JSON.stringify({ error: "only alphanum is allowed in order_name" }));
+                response.end(JSON.stringify({ error: "Only alphanum is allowed in order_name" }));
+                return;
+            }
+
+            const order_exist_query = "SELECT order_id FROM orders WHERE order_id = $1";
+            const order_exist_result = await pool.query(order_exist_query, [order_id]);
+
+            if (order_exist_result.rowCount > 0) {
+            response.writeHead(409, { "Content-Type": "application/json" });
+            response.end(JSON.stringify({ error: "Order_id already exists." }));
                 return;
             }
 
@@ -40,14 +49,16 @@ export const createOrder = (request, response) => {
 
             response.writeHead(201, {"Content-Type" : "application/json"});
             response.end(JSON.stringify({
-                message: "Yayyyy its finally working!",
+                message: "Order created successfully",
                 order: result.rows[0]
             }));
 
         } catch (error) {
             console.log("Error", error);
             response.writeHead(500, {"Content-Type" : "application/json"});
-            response.end(JSON.stringify("This api sucks."));
+            response.end(JSON.stringify({
+                error: "This api is not working."
+            }));
         }
     })
 }
@@ -58,9 +69,9 @@ export const seeOrder = async (request, response) => {
         const result = await pool.query(query);
         
         // console.log(result.rows.length);
-        response.writeHead(201, {"Content-Type" : "application/json"});
+        response.writeHead(200, {"Content-Type" : "application/json"});
         response.end(JSON.stringify({
-            message: "Yayyy this works!",
+            message: "All orders detail.",
             orders: result.rows
         }));
 
@@ -68,7 +79,7 @@ export const seeOrder = async (request, response) => {
         console.log("Error", error);
         response.writeHead(500, {"Content-Type" : "application/json"});
         response.end(JSON.stringify({
-            message: "This api sucks."
+            error: "This api is not working."
         }));
     };
 }
@@ -87,12 +98,12 @@ export const seeOrderById = async (request, response) => {
         if (result.rows.length === 0) {
                 response.writeHead(404, { "Content-Type" : "application/json" });
                 response.end(JSON.stringify({
-                message: "Hehe the order's not present here",
+                error: "The order's not present here",
             }))
         } else {
             response.writeHead(200, { "Content-Type" : "application/json" });
             response.end(JSON.stringify({
-                message: "See that data using order_id",
+                message: "Data fetched by order_id",
                 order: result.rows
             }))
         }
@@ -102,7 +113,7 @@ export const seeOrderById = async (request, response) => {
         console.log("Error", error);
         response.writeHead(500, {"Content-Type" : "application/json"});
         response.end(JSON.stringify({
-            message: "This api sucks."
+            error: "This api is not working."
         }));
     }
 }
@@ -121,7 +132,7 @@ export const deleteOrderById = async (request, response) => {
 
         response.writeHead(200, { "Content-Type" : "application/json" });
         response.end(JSON.stringify({
-            message: "Oh no its deleted.",
+            message: "Order deleted.",
             order: result.rows[0]
         }))
 
@@ -129,7 +140,7 @@ export const deleteOrderById = async (request, response) => {
         console.log("Error", error);
         response.writeHead(500, { "Content-Type" : "application/json" })
         response.end(JSON.stringify({
-            message: "Error error error"
+            error: "Error"
         }))
     }
 }
@@ -157,14 +168,14 @@ export const editOrderById = (request, response) => {
             const result = await pool.query(query, values);
             
             if (result.rows.length === 0) {
-                response.writeHead(404, { "Content-Type" : "application/json"});
+                response.writeHead(418, { "Content-Type" : "application/json"});
                 response.end(JSON.stringify({
-                    message: "EMPTY EMPTY EMPTY."
+                    message: "order_id is either wrong or not present."
                 }))
             } else {
                 response.writeHead(200, { "Content-Type" : "application/json"});
                 response.end(JSON.stringify({
-                    message: "Woah its actually updated.",
+                    message: "order updated successfully.",
                     updated_order: result.rows[0]
                 }))
             }
@@ -173,7 +184,7 @@ export const editOrderById = (request, response) => {
             console.log("Error", error);
             response.writeHead(500, { "Content-Type" : "application/json" })
             response.end(JSON.stringify({
-            message: "Error error error"
+            error: "Error."
         }))
         }
     })

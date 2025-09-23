@@ -21,18 +21,18 @@ const server =  http.createServer((request, response) => {
         editOrderById(request, response);
     } else {
         response.writeHead(404);
-        response.end("mmhm are you sure you are on right url?");
+        response.end("Wrong URL? or Not Found");
     }
 });
 
 pool.connect((error) => {
     if (error){
-        console.log("Lol got an error with db connection.", error.stack)
+        console.log("Got an error with db connection.", error.stack)
     } else {
-        console.log("DB connected - Well done :)")
+        console.log("DB connected")
     }
 })
 
 server.listen(PORT, '127.0.0.1', () => {
-    console.log(`Can you see which port it is connected to - ${PORT}`);
+    console.log(`Server is connected to port - ${PORT}`);
 });
