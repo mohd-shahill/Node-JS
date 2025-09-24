@@ -1,4 +1,7 @@
 import pool from "../database/db.js";
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
 
 export const createOrder = (request, response) => {
     let body='';
@@ -119,7 +122,6 @@ export const seeOrderById = async (request, response) => {
     }
 }
 
-
 export const deleteOrderById = async (request, response) => {
     try {
 
@@ -187,6 +189,69 @@ export const editOrderById = (request, response) => {
             response.end(JSON.stringify({
             error: "Error."
         }))
+        }
+    })
+}
+
+export const fileUpload = (request, response) => {
+    const boundry = request.headers['content-type'].split("=")[1];
+    let data = '';
+    request.on("data", (chunk) => {
+        data += chunk.toString();
+    })
+
+    request.on('end', async () => {
+        try{
+
+            const __filename = fileURLToPath(import.meta.url);
+            const __dirname = path.dirname(__filename);
+            const parts = data.split(`--${boundry}`);
+            const file_part = parts.find((part) => part.includes('Content-Disposition'));
+            const file_data = file_part.split('\r\n\r\n')[1].split('\r\n--')[0];
+
+            // const content_disposition_line = file_part.split('\r\n')[1];
+            // const match = content_disposition_line.match(/filename="(.+)"/);
+            // if (!match) throw new Error('Filename not found');
+
+            // const originalFileName = match[1];
+
+            // const ext = path.extname(originalFileName);
+
+            const file_name = Date.now() + ".txt";
+
+
+            fs.writeFile(path.join(__dirname, ".." ,"uploads", file_name), file_data, (error) =>{
+                if(error){
+                    response.writeHead(500, { "Content-Type" : "application/json" });
+                    response.end(JSON.stringify({
+                        error: "Error while saving the file."
+                    }))
+                } else {
+                    response.writeHead(200, { "Content-Type" : "application/json" });
+                    response.end(JSON.stringify({
+                        message: "File uploaded successfully."
+                    }))
+                }
+            })
+
+            const uploadDir = path.join(__dirname, ".." ,'uploads');
+            if (!fs.existsSync(uploadDir)) {
+                fs.mkdirSync(uploadDir);
+            }
+
+            const file_path = path.join("uploads", file_name);
+
+            const query = "INSERT INTO upload (path) VALUES ($1) RETURNING *";
+            const values = [file_path];
+
+            await pool.query(query, values);
+
+        } catch (error) {
+            console.log("Error", error);
+            response.writeHead(500, {"Content-Type" : "application/json"});
+            response.end(JSON.stringify({
+                error: "This api is not working."
+            }));
         }
     })
 }
