@@ -53,32 +53,44 @@
 
 // printBufferDetails(newbuff);
 
-import http from 'http';
+// import http from 'http';
 
-const server = http.createServer((req, res) => {
-  if (req.method === 'POST') {
-    const chunks = [];
+// const server = http.createServer((req, res) => {
+//   if (req.method === 'POST') {
+//     const chunks = [];
     
-    req.on('data', chunk => chunks.push(chunk));
+//     req.on('data', chunk => chunks.push(chunk));
     
-    req.on('end', () => {
-      // Full request body as Buffer
-      const bodyBuffer = Buffer.concat(chunks);
+//     req.on('end', () => {
+//       // Full request body as Buffer
+//       const bodyBuffer = Buffer.concat(chunks);
 
-      // Convert to string for headers inspection
-      // Warning: binary files may be messy in console
-      const bodyString = bodyBuffer.toString('binary');
+//       // Convert to string for headers inspection
+//       // Warning: binary files may be messy in console
+//       const bodyString = bodyBuffer.toString('binary');
 
-      console.log('RAW MULTIPART BODY');
-      console.log(bodyString);
+//       console.log('RAW MULTIPART BODY');
+//       console.log(bodyString);
 
-      res.writeHead(200, { 'Content-Type': 'text/plain' });
-      res.end('Received');
-    });
-  } else {
-    res.writeHead(200, { 'Content-Type': 'text/plain' });
-    res.end('Send a POST request');
-  }
+//       res.writeHead(200, { 'Content-Type': 'text/plain' });
+//       res.end('Received');
+//     });
+//   } else {
+//     res.writeHead(200, { 'Content-Type': 'text/plain' });
+//     res.end('Send a POST request');
+//   }
+// });
+
+// server.listen(3000, () => console.log('Server running on http://localhost:3000'));
+
+
+import fs from 'fs';
+
+console.log("Start");
+
+fs.readFile('C:/Users/amita/Desktop/test.txt', "utf-8", (err, data) => {
+  if (err) console.error(err);
+  else console.log(data);
 });
 
-server.listen(3000, () => console.log('Server running on http://localhost:3000'));
+console.log("End");
