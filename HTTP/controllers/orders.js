@@ -194,10 +194,10 @@ export const editOrderById = (request, response) => {
 }
 
 export const fileUpload = (request, response) => {
+    const chunks = [];
     const boundry = request.headers['content-type'].split("=")[1];
-    let data = '';
     request.on("data", (chunk) => {
-        data += chunk.toString();
+        chunks.push(chunk);
     })
 
     request.on('end', async () => {
@@ -205,22 +205,30 @@ export const fileUpload = (request, response) => {
 
             const __filename = fileURLToPath(import.meta.url);
             const __dirname = path.dirname(__filename);
-            const parts = data.split(`--${boundry}`);
+
+            const body_buffer = Buffer.concat(chunks);
+            const body_string = body_buffer.toString('binary');
+
+            const parts = body_string.split(`--${boundry}`);
             const file_part = parts.find((part) => part.includes('Content-Disposition'));
-            const file_data = file_part.split('\r\n\r\n')[1].split('\r\n--')[0];
 
-            // const content_disposition_line = file_part.split('\r\n')[1];
-            // const match = content_disposition_line.match(/filename="(.+)"/);
-            // if (!match) throw new Error('Filename not found');
+            const header_end_index = file_part.indexOf('\r\n\r\n') + 4;
+            const file_data = file_part.substring(header_end_index, file_part.lastIndexOf('\r\n'));
 
-            // const originalFileName = match[1];
+            const file_buffer = Buffer.from(file_data, 'binary');
 
-            // const ext = path.extname(originalFileName);
+            const content_disposition_line = file_part.split('\r\n')[1];
+            const match = content_disposition_line.match(/filename="(.+)"/);
+            if (!match) throw new Error('Filename not found');
 
-            const file_name = Date.now() + ".txt";
+            const original_file_name = match[1];
+
+            const ext = path.extname(original_file_name);
+
+            const file_name = Date.now() + ext;
 
 
-            fs.writeFile(path.join(__dirname, ".." ,"uploads", file_name), file_data, (error) =>{
+            fs.writeFile(path.join(__dirname, ".." ,"uploads", file_name), file_buffer, (error) =>{
                 if(error){
                     response.writeHead(500, { "Content-Type" : "application/json" });
                     response.end(JSON.stringify({
@@ -229,7 +237,7 @@ export const fileUpload = (request, response) => {
                 } else {
                     response.writeHead(200, { "Content-Type" : "application/json" });
                     response.end(JSON.stringify({
-                        message: "File uploaded successfully."
+                        message: "file uploaded successfully."
                     }))
                 }
             })
