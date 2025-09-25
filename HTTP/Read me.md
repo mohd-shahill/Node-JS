@@ -1,4 +1,4 @@
-There are 2 tables in the http database (postgres) as of now.
+There are 2 tables in the http (database name) postgres as of now.
 
 1. create table orders (
     order_id varchar(20) primary key, not null,

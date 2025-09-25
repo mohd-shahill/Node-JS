@@ -194,8 +194,9 @@ export const editOrderById = (request, response) => {
 }
 
 export const fileUpload = (request, response) => {
+    // console.log(request.headers);
+    const boundary = request.headers['content-type'].split("=")[1];
     const chunks = [];
-    const boundry = request.headers['content-type'].split("=")[1];
     request.on("data", (chunk) => {
         chunks.push(chunk);
     })
@@ -206,10 +207,12 @@ export const fileUpload = (request, response) => {
             const __filename = fileURLToPath(import.meta.url);
             const __dirname = path.dirname(__filename);
 
+
+            // all this is for getting the actual data of the file in the file_buffer. 
             const body_buffer = Buffer.concat(chunks);
             const body_string = body_buffer.toString('binary');
 
-            const parts = body_string.split(`--${boundry}`);
+            const parts = body_string.split(`--${boundary}`).filter(Boolean);
             const file_part = parts.find((part) => part.includes('Content-Disposition'));
 
             const header_end_index = file_part.indexOf('\r\n\r\n') + 4;
@@ -217,6 +220,7 @@ export const fileUpload = (request, response) => {
 
             const file_buffer = Buffer.from(file_data, 'binary');
 
+            // all this is for getting the file name and its extension to save the file in its original extension.
             const content_disposition_line = file_part.split('\r\n')[1];
             const match = content_disposition_line.match(/filename="(.+)"/);
             if (!match) throw new Error('Filename not found');
@@ -227,7 +231,7 @@ export const fileUpload = (request, response) => {
 
             const file_name = Date.now() + ext;
 
-
+            // this is for saving the file in the disk
             fs.writeFile(path.join(__dirname, ".." ,"uploads", file_name), file_buffer, (error) =>{
                 if(error){
                     response.writeHead(500, { "Content-Type" : "application/json" });
@@ -237,17 +241,19 @@ export const fileUpload = (request, response) => {
                 } else {
                     response.writeHead(200, { "Content-Type" : "application/json" });
                     response.end(JSON.stringify({
-                        message: "file uploaded successfully."
+                        message: "File uploaded successfully."
                     }))
                 }
             })
 
+            // this is for uploading the file in the HTTP/uploads folder
             const uploadDir = path.join(__dirname, ".." ,'uploads');
             if (!fs.existsSync(uploadDir)) {
                 fs.mkdirSync(uploadDir);
             }
 
-            const file_path = path.join("uploads", file_name);
+            // this is for saving the query of uploaded file in the database
+            const file_path = path.join("http/uploads", file_name);
 
             const query = "INSERT INTO upload (path) VALUES ($1) RETURNING *";
             const values = [file_path];
