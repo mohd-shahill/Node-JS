@@ -207,6 +207,7 @@ export const fileUpload = (request, response) => {
             
             const __filename = fileURLToPath(import.meta.url);
             const __dirname = path.dirname(__filename);
+            // console.log(__filename, __dirname);
             
             // this is for uploading the file in the HTTP/uploads folder
             const uploadDir = path.join(__dirname, ".." ,'uploads');
@@ -221,16 +222,17 @@ export const fileUpload = (request, response) => {
             const parts = body_string.split(`--${boundary}`).filter(Boolean);
             const file_part = parts.find((part) => part.includes('Content-Disposition'));
 
+            
             const header_end_index = file_part.indexOf('\r\n\r\n') + 4;
             const file_data = file_part.substring(header_end_index, file_part.lastIndexOf('\r\n'));
-
+            
             const file_buffer = Buffer.from(file_data, 'binary');
-
+            
             // all this is for getting the file name and its extension to save the file in its original extension.
             const content_disposition_line = file_part.split('\r\n')[1];
             const match = content_disposition_line.match(/filename="(.+)"/);
             if (!match) throw new Error('Filename not found');
-
+            
             const original_file_name = match[1];
 
             const ext = path.extname(original_file_name);
@@ -274,23 +276,42 @@ export const deleteUploadById = async (request, response) => {
     try {
 
         const get_id_from_url = request.url.split('/').filter(Boolean);
-        console.log(get_id_from_url)
+        // console.log(get_id_from_url)
         const id = get_id_from_url[2];
 
-        const query = 'DELETE FROM uploads WHERE id = $1;';
-        const values = [id];
+        const { rows } = await pool.query("SELECT path FROM uploads WHERE id = $1", [id]);
+        if(rows.length === 0){
+            response.writeHead(404, { "Content-Type" : "application/json" });
+            response.end(JSON.stringify({
+                message: "Media not found 404."
+            }))
+            return;
+        }
 
-        const result = await pool.query(query, values);
+        const db_path = rows[0].path;
+        // console.log(db_path)
 
-        // console.log(id, query, values, result);
+        const file_name = path.basename(db_path);
+        
+        await pool.query('DELETE FROM uploads WHERE id = $1;', [id]);
+
+        const __filename = fileURLToPath(import.meta.url);
+        const __dirname = path.dirname(__filename);
+        const file_path = path.join(__dirname, "..", "uploads", file_name);
+        // console.log(file_path)
+        
+        fs.unlink(file_path, (error) => {
+            if (error) {
+                console.log("Error deleting the file ", error);
+            } else {
+                console.log("File deleted successfully");
+            }
+        });
 
         response.writeHead(200, { "Content-Type" : "application/json" });
         response.end(JSON.stringify({
-            message: "Media deleted.",
-            order: result.rows[0]
+            message: "Media deleted."
         }))
-
-        const file_path = s;
 
     } catch (error) {
         console.log("Error", error);
