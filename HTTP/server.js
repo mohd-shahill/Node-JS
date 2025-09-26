@@ -1,7 +1,7 @@
 import http from "http";
 import dotenv from 'dotenv';
 import pool from './database/db.js';
-import { createOrder, deleteOrderById, editOrderById, seeOrder, seeOrderById, fileUpload } from "./controllers/orders.js";
+import { createOrder, deleteOrderById, editOrderById, seeOrder, seeOrderById, fileUpload, deleteUploadById } from "./controllers/orders.js";
 dotenv.config();
 
 const PORT = process.env.PORT;
@@ -21,7 +21,9 @@ const server =  http.createServer((request, response) => {
         editOrderById(request, response);
     } else if (request.url == "/api/upload" && request.method == "POST"){
         fileUpload(request, response);
-    } else {
+    } else if (request.url.startsWith("/api/upload") && request.method == "DELETE"){
+        deleteUploadById(request, response);
+    }else {
         response.writeHead(404);
         response.end("Wrong URL? or Not Found");
     }

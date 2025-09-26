@@ -1,5 +1,6 @@
 import pool from "../database/db.js";
 import fs from 'fs';
+import { request } from "http";
 import path from 'path';
 import { fileURLToPath } from 'url';
 
@@ -200,13 +201,18 @@ export const fileUpload = (request, response) => {
     request.on("data", (chunk) => {
         chunks.push(chunk);
     })
-
+    
     request.on('end', async () => {
         try{
-
+            
             const __filename = fileURLToPath(import.meta.url);
             const __dirname = path.dirname(__filename);
-
+            
+            // this is for uploading the file in the HTTP/uploads folder
+            const uploadDir = path.join(__dirname, ".." ,'uploads');
+            if (!fs.existsSync(uploadDir)) {
+                fs.mkdirSync(uploadDir);
+            }
 
             // all this is for getting the actual data of the file in the file_buffer. 
             const body_buffer = Buffer.concat(chunks);
@@ -246,16 +252,10 @@ export const fileUpload = (request, response) => {
                 }
             })
 
-            // this is for uploading the file in the HTTP/uploads folder
-            const uploadDir = path.join(__dirname, ".." ,'uploads');
-            if (!fs.existsSync(uploadDir)) {
-                fs.mkdirSync(uploadDir);
-            }
-
             // this is for saving the query of uploaded file in the database
             const file_path = path.join("http/uploads", file_name);
 
-            const query = "INSERT INTO upload (path) VALUES ($1) RETURNING *";
+            const query = "INSERT INTO uploads (path) VALUES ($1) RETURNING *";
             const values = [file_path];
 
             await pool.query(query, values);
@@ -268,4 +268,35 @@ export const fileUpload = (request, response) => {
             }));
         }
     })
+}
+
+export const deleteUploadById = async (request, response) => {
+    try {
+
+        const get_id_from_url = request.url.split('/').filter(Boolean);
+        console.log(get_id_from_url)
+        const id = get_id_from_url[2];
+
+        const query = 'DELETE FROM uploads WHERE id = $1;';
+        const values = [id];
+
+        const result = await pool.query(query, values);
+
+        // console.log(id, query, values, result);
+
+        response.writeHead(200, { "Content-Type" : "application/json" });
+        response.end(JSON.stringify({
+            message: "Media deleted.",
+            order: result.rows[0]
+        }))
+
+        const file_path = s;
+
+    } catch (error) {
+        console.log("Error", error);
+        response.writeHead(500, { "Content-Type" : "application/json" })
+        response.end(JSON.stringify({
+            error: "Error"
+        }))
+    }
 }
