@@ -15,18 +15,18 @@ const server =  http.createServer((request, response) => {
     if (request.url == "/api/create/order" && request.method == "POST"){
         authenticationToken(request, response, createOrder);
     } else if (request.url == "/api/see/order/all" && request.method == "GET"){
-        seeOrder(request, response);
+        authenticationToken(request, response, seeOrder);
     } else if (request.url.startsWith("/api/see/order/") && request.method == "GET"){
-        seeOrderById(request, response);
+        authenticationToken(request, response, seeOrderById);
     } else if (request.url.startsWith("/api/see/order/") && request.method == "DELETE"){
-        deleteOrderById(request, response);
+        authenticationToken(request, response, deleteOrderById);
     } else if (request.url.startsWith("/api/edit/order/") && request.method == "PUT"){
-        editOrderById(request, response);
+        authenticationToken(request, response, editOrderById);
     } else if (request.url == "/api/upload" && request.method == "POST"){
-        fileUpload(request, response);
+        authenticationToken(request, response, fileUpload);
     } else if (request.url.startsWith("/api/upload") && request.method == "DELETE"){
-        deleteUploadById(request, response);
-    }else {
+        authenticationToken(request, response, deleteUploadById);
+    } else {
         response.writeHead(404);
         response.end("Wrong URL? or Not Found");
     }
