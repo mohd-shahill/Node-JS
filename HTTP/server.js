@@ -2,6 +2,9 @@ import http from "http";
 import dotenv from 'dotenv';
 import pool from './database/db.js';
 import { createOrder, deleteOrderById, editOrderById, seeOrder, seeOrderById, fileUpload, deleteUploadById } from "./controllers/orders.js";
+
+import { authenticationToken } from "./middlewares/authVerification.js";
+
 dotenv.config();
 
 const PORT = process.env.PORT;
@@ -10,7 +13,7 @@ const PORT = process.env.PORT;
 const server =  http.createServer((request, response) => {
 
     if (request.url == "/api/create/order" && request.method == "POST"){
-        createOrder(request, response);
+        authenticationToken(request, response, createOrder);
     } else if (request.url == "/api/see/order/all" && request.method == "GET"){
         seeOrder(request, response);
     } else if (request.url.startsWith("/api/see/order/") && request.method == "GET"){
